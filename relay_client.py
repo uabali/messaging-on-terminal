@@ -13,68 +13,68 @@ class RelayClient:
             try:
                 message = self.client.recv(1024).decode('utf-8')
                 if not message:
-                    print("\nSunucu baglantisi kesildi!")
+                    print("\nServer connection lost!")
                     sys.exit(1)
                 print(f"\n{message}")
             except Exception as e:
-                print(f"\nMesaj alma hatasi: {e}")
+                print(f"\nError receiving message: {e}")
                 sys.exit(1)
     
     def start(self):
         try:
-            print(f"\nSunucuya baglaniliyor: {self.host}:{self.port}")
-            # Sunucuya bağlan
+            print(f"\nConnecting to server: {self.host}:{self.port}")
+            # Connect to server
             self.client.connect((self.host, self.port))
-            print("Sunucuya baglandi!")
+            print("Connected to server!")
             
-            # Kullanıcı adını gönder
-            username = input("\nKullanici adinizi girin: ")
+            # Send username
+            username = input("\nEnter your username: ")
             self.client.send(username.encode('utf-8'))
-            print("Kullanici adi gonderildi!")
+            print("Username sent!")
             
-            # Mesaj alma thread'ini başlat
+            # Start message receiving thread
             receive_thread = threading.Thread(target=self.receive_messages)
             receive_thread.daemon = True
             receive_thread.start()
             
-            print("\nMesajlasmaya baslayabilirsiniz! (Cikmak icin 'q' yazin)")
+            print("\nYou can start messaging! (Type 'q' to quit)")
             print("==================================================\n")
             
-            # Mesaj gönderme döngüsü
+            # Message sending loop
             while True:
                 message = input("")
                 if message.lower() == 'q':
                     break
                 try:
                     self.client.send(message.encode('utf-8'))
-                    print("Mesaj gonderildi!")
+                    print("Message sent!")
                 except Exception as e:
-                    print(f"Mesaj gonderilemedi: {e}")
+                    print(f"Failed to send message: {e}")
                     break
                 
         except ConnectionRefusedError:
-            print(f"\nHata: {self.host}:{self.port} adresine baglanilamadi!")
-            print("Sunucunun calistigindan emin olun.")
+            print(f"\nError: Could not connect to {self.host}:{self.port}!")
+            print("Make sure the server is running.")
             sys.exit(1)
         except Exception as e:
-            print(f"\nBaglanti hatasi: {e}")
+            print(f"\nConnection error: {e}")
             sys.exit(1)
         finally:
-            print("\nBaglanti kapatiliyor...")
+            print("\nClosing connection...")
             self.client.close()
 
 if __name__ == "__main__":
     try:
-        # Sunucu IP adresini al
-        server_ip = input("Sunucu IP adresini girin (ornek: 0.tcp.ngrok.io): ").strip()
-        server_port = int(input("Port numarasini girin (ornek: 12345): ").strip())
+        # Get server IP address
+        server_ip = input("Enter server IP (example: 0.tcp.ngrok.io): ").strip()
+        server_port = int(input("Enter port number (example: 12345): ").strip())
         
-        # İstemciyi başlat
+        # Start client
         client = RelayClient(server_ip, server_port)
         client.start()
     except ValueError:
-        print("Hata: Gecersiz port numarasi!")
+        print("Error: Invalid port number!")
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\nProgram sonlandirildi.")
+        print("\nProgram terminated.")
         sys.exit(0) 
